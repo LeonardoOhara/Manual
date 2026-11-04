@@ -1,6 +1,6 @@
 # Busca de manuais
 
-Site estático responsivo para localizar manuais por texto, filtro ou voz. A busca por voz entende nomes de números em português, oferece os resultados mais prováveis e abre automaticamente uma correspondência única. Os PDFs permanecem na pasta pública do Google Drive e são visualizados na própria página.
+Site estático responsivo para localizar manuais por texto, filtro ou voz. A busca por voz entende nomes de números em português, encontra manuais por qualquer palavra ou número reconhecido (inclusive o número final dentro de códigos como V20), considera até dez alternativas do reconhecimento e corrige trocas comuns da primeira letra de códigos quando o código correspondente existe no catálogo e não há um modelo exato com o código reconhecido. Ela oferece os resultados mais prováveis e abre automaticamente uma correspondência única. Os PDFs permanecem na pasta pública do Google Drive e são visualizados na própria página.
 
 ## Publicar no GitHub Pages
 

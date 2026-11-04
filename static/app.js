@@ -34,6 +34,19 @@ const letterNames = new Map([
   ["ve", "v"], ["eme", "m"], ["erre", "r"], ["esse", "s"], ["ka", "k"],
   ["ele", "l"], ["be", "b"], ["pe", "p"], ["te", "t"], ["ze", "z"],
 ]);
+const modelLetterConfusions = new Map([
+  ["b", new Set(["v", "p"])],
+  ["v", new Set(["b", "f"])],
+  ["p", new Set(["b"])],
+  ["f", new Set(["v"])],
+  ["d", new Set(["t"])],
+  ["t", new Set(["d"])],
+  ["c", new Set(["k"])],
+  ["k", new Set(["c"])],
+  ["g", new Set(["j"])],
+  ["j", new Set(["g"])],
+]);
+const modelCodePattern = /^[a-z]{1,3}\d{1,4}$/;
 const ignoredWords = new Set([
   "manual", "manuais", "instrucoes", "instrucao", "portugues", "brasil",
   "br", "pt", "ptbr", "do", "da", "de", "para", "e", "o", "a", "uma",
@@ -116,7 +129,7 @@ function normalizedTokens(value) {
 
     if (number !== null) {
       const previous = tokens[tokens.length - 1];
-      if (previous && previous.length === 1 && /^[a-z]$/.test(previous) && number <= 99) {
+      if (previous && previous.length === 1 && /^[a-z]$/.test(previous) && number <= 9999) {
         tokens[tokens.length - 1] += String(number);
       } else {
         tokens.push(String(number));
@@ -147,6 +160,26 @@ function tokenSimilarity(left, right) {
   return 1 - previous[right.length] / Math.max(left.length, right.length);
 }
 
+function correctVoiceTokens(tokens) {
+  const knownModelCodes = new Set(
+    manuals.flatMap((manual) =>
+      normalizedTokens(manual.title).filter((token) => modelCodePattern.test(token)),
+    ),
+  );
+  const corrections = [];
+  const correctedTokens = tokens.map((token) => {
+    if (!modelCodePattern.test(token) || knownModelCodes.has(token)) return token;
+    const candidates = [...(modelLetterConfusions.get(token[0]) || [])]
+      .map((letter) => `${letter}${token.slice(1)}`)
+      .filter((candidate) => knownModelCodes.has(candidate));
+    const uniqueCandidates = [...new Set(candidates)];
+    if (uniqueCandidates.length !== 1) return token;
+    corrections.push({ heard: token, matched: uniqueCandidates[0] });
+    return uniqueCandidates[0];
+  });
+  return { tokens: correctedTokens, corrections };
+}
+
 function scoreTokens(queryTokens, targetTokens, allowFuzzy = false) {
   const remaining = [...targetTokens];
   const scores = queryTokens.map((queryToken) => {
@@ -172,6 +205,24 @@ function scoreTokens(queryTokens, targetTokens, allowFuzzy = false) {
   return scores.length
     ? scores.reduce((total, score) => total + score, 0) / scores.length
     : 0;
+}
+
+function scoreVoiceTokens(queryTokens, targetTokens) {
+  return Math.max(
+    0,
+    ...queryTokens.map((queryToken) => {
+      const score = scoreTokens([queryToken], targetTokens, true);
+      if (score > 0) return score;
+      if (/^\d+$/.test(queryToken) && queryToken.length >= 1) {
+        return targetTokens.some(
+          (target) => modelCodePattern.test(target) && target.endsWith(queryToken),
+        )
+          ? 1
+          : 0;
+      }
+      return 0;
+    }),
+  );
 }
 
 function createManualCard(manual) {
@@ -314,12 +365,19 @@ function closePdf(updateHistory = true) {
 }
 
 function searchByVoice(alternatives) {
+  const correctedAlternatives = alternatives.map(correctVoiceTokens);
+  const corrections = correctedAlternatives.flatMap(({ corrections: items }) => items);
+  alternatives = correctedAlternatives
+    .map(({ tokens }) => tokens)
+    .filter((tokens, index, all) =>
+      tokens.length && all.findIndex((item) => item.join(" ") === tokens.join(" ")) === index,
+    );
   const scored = manuals.map((manual) => {
     const titleTokens = normalizedTokens(manual.title);
     const brandTokens = normalizedTokens(manual.brand);
     const score = Math.max(
       ...alternatives.map((alternative) =>
-        scoreTokens(alternative, [...titleTokens, ...brandTokens], true),
+        scoreVoiceTokens(alternative, [...titleTokens, ...brandTokens]),
       ),
     );
     return [manual.id, score];
@@ -333,15 +391,19 @@ function searchByVoice(alternatives) {
     .map((manual) => ({ manual, score: voiceScores.get(manual.id) }))
     .filter(({ score }) => score >= 0.8)
     .sort((left, right) => right.score - left.score);
+  const correctionMessage = corrections.length
+    ? `Ajustei “${corrections[0].heard.toUpperCase()}” para “${corrections[0].matched.toUpperCase()}” com base nos modelos do catálogo. `
+    : "";
   if (matches.length === 1 && matches[0].score >= 0.95) {
-    voiceStatus.textContent = `Encontrei: “${matches[0].manual.title}”. Abrindo o manual.`;
+    voiceStatus.textContent =
+      `${correctionMessage}Encontrei: “${matches[0].manual.title}”. Abrindo o manual.`;
     openPdf(matches[0].manual);
   } else if (matches.length) {
     voiceStatus.textContent =
-      `Entendi: “${searchInput.value}”. Selecione o manual correto nos resultados.`;
+      `${correctionMessage}Entendi: “${searchInput.value}”. Selecione o manual correto nos resultados.`;
   } else {
     voiceStatus.textContent =
-      `Não encontrei um manual para “${searchInput.value}”. Tente falar o modelo novamente.`;
+      `${correctionMessage}Não encontrei um manual para “${searchInput.value}”. Tente falar o modelo novamente.`;
   }
 }
 
@@ -448,7 +510,7 @@ if (!SpeechRecognition) {
   const recognition = new SpeechRecognition();
   recognition.lang = "pt-BR";
   recognition.interimResults = true;
-  recognition.maxAlternatives = 5;
+  recognition.maxAlternatives = 10;
 
   voiceButton.addEventListener("click", () => {
     voiceButton.disabled = true;
@@ -467,7 +529,7 @@ if (!SpeechRecognition) {
     voiceButton.classList.add("listening");
     voiceButton.disabled = true;
     voiceStatus.textContent =
-      "Estou ouvindo. Diga o modelo completo, por exemplo: V30 Elite.";
+      "Estou ouvindo. Diga a letra e o número separadamente, por exemplo: V, vinte.";
   });
 
   recognition.addEventListener("result", (event) => {
