@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="./static/styles.css">
 </head>
 <body>
   <script>
@@ -16,8 +16,7 @@
       try {
         const savedTheme = localStorage.getItem("manual-theme");
         const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const theme = savedTheme || (systemPrefersDark ? "dark" : "light");
-        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.theme = savedTheme || (systemPrefersDark ? "dark" : "light");
       } catch {
         document.documentElement.dataset.theme = "light";
       }
@@ -25,14 +24,14 @@
   </script>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="{{ url_for('index') }}" aria-label="Página inicial">
+      <a class="brand" href="./" aria-label="Página inicial">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 3v6h5M8 14h8m-8 3h6"/></svg>
         </span>
         <span class="brand-name">Manuais<span>busca por voz</span></span>
       </a>
       <div class="side-label">BIBLIOTECA</div>
-      <a class="nav-link active" href="{{ url_for('index') }}">
+      <a class="nav-link active" href="./">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
         Buscar manual
       </a>
@@ -45,7 +44,7 @@
       </div>
       <div class="sidebar-footer">
         <span class="status-dot"></span>
-        Biblioteca atualizada ao abrir
+        <span id="library-count">Carregando biblioteca</span>
       </div>
     </aside>
 
@@ -53,7 +52,7 @@
       <header class="topbar">
         <div class="breadcrumbs">Biblioteca <span>/</span> <strong>Buscar manuais</strong></div>
         <div class="topbar-actions">
-          <div class="library-status"><span class="status-dot"></span> Biblioteca local</div>
+          <div class="library-status"><span class="status-dot"></span> Biblioteca online</div>
           <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Ativar tema escuro" title="Ativar tema escuro">
             <svg class="theme-icon-light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
             <svg class="theme-icon-dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg>
@@ -70,17 +69,15 @@
       </section>
 
       <section class="search-panel" aria-label="Pesquisar e filtrar manuais">
-        <form id="search-form" action="{{ url_for('index') }}" method="get">
-          <input id="voice-search" type="hidden" name="voice" value="0">
+        <form id="search-form">
+          <input id="voice-search" type="hidden" value="0">
           <label class="search-box">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
-            <input id="search-query" type="search" name="q" value="{{ query }}" placeholder="Diga ou digite o modelo, por exemplo: V30 Elite" aria-label="Buscar manual por voz ou texto">
+            <input id="search-query" type="search" placeholder="Diga ou digite o modelo, por exemplo: V30 Elite" aria-label="Buscar manual por voz ou texto">
             <button id="voice-button" class="voice-button" type="button" aria-label="Pesquisar por voz" title="Pesquisar por voz">
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0m-7 7v3m-4 0h8"/></svg>
             </button>
-            {% if query or brand_filter %}
-              <a class="clear-search" href="{{ url_for('index') }}">Limpar</a>
-            {% endif %}
+            <a id="clear-search" class="clear-search" href="./" hidden>Limpar</a>
           </label>
           <div class="filter-row">
             <div class="filter-title">
@@ -89,11 +86,8 @@
             </div>
             <label class="select-wrap">
               <span class="sr-only">Marca</span>
-              <select id="brand-filter" name="brand" aria-label="Filtrar por marca">
+              <select id="brand-filter" aria-label="Filtrar por marca">
                 <option value="">Todas as marcas</option>
-                {% for brand in brands %}
-                  <option value="{{ brand }}" {% if brand_filter == brand %}selected{% endif %}>{{ brand }}</option>
-                {% endfor %}
               </select>
               <span class="select-chevron">⌄</span>
             </label>
@@ -110,62 +104,25 @@
         <div class="results-heading">
           <div>
             <h2>Manuais encontrados</h2>
-            <p id="results-description" aria-live="polite">
-              {% if query or brand_filter %}
-                {{ results|length }} resultado{% if results|length != 1 %}s{% endif %} para sua busca
-              {% else %}
-                {{ results|length }} manual{% if results|length != 1 %}is{% endif %} na biblioteca
-              {% endif %}
-            </p>
+            <p id="results-description" aria-live="polite">Carregando biblioteca...</p>
           </div>
-          <span id="results-count" class="results-count">{{ results|length }} resultados</span>
+          <span id="results-count" class="results-count">...</span>
         </div>
-
-        <div id="manual-list" class="manual-list">
-          {% for manual in results %}
-            <article
-              class="manual-card"
-              data-title="{{ manual.title }}"
-              data-brand="{{ manual.brand }}"
-              data-score="{{ manual.score }}"
-            >
-              <div class="manual-info">
-                <span class="file-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 3v6h5M8 14h8m-8 3h6"/></svg>
-                </span>
-                <div class="manual-title-wrap">
-                  <h3>{{ manual.title }}</h3>
-                  <div class="manual-meta"><span>{{ manual.brand }}</span><span class="meta-separator">·</span><span>PDF</span></div>
-                </div>
-              </div>
-              <a class="pdf-link" href="{{ url_for('open_manual', manual_id=manual.id) }}" data-title="{{ manual.title }}" aria-label="Abrir PDF: {{ manual.title }}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7m-1-6-9 9"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-                <span>Abrir PDF</span>
-              </a>
-            </article>
-          {% endfor %}
-        </div>
+        <div id="manual-list" class="manual-list"></div>
         <div id="empty-state" class="empty-state" hidden>
           <span class="empty-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
           </span>
           <h3>Nenhum manual encontrado</h3>
           <p>Tente outro título ou remova alguns filtros para ver mais resultados.</p>
-          <a href="{{ url_for('index') }}">Limpar filtros</a>
+          <a href="./">Limpar filtros</a>
         </div>
-
       </section>
 
-      <footer class="page-footer">Biblioteca local de manuais PDF <span>·</span> Pesquisa por voz ou texto</footer>
+      <footer class="page-footer">Biblioteca online de manuais PDF <span>·</span> Pesquisa por voz ou texto</footer>
     </main>
   </div>
-  <dialog
-    id="pdf-dialog"
-    class="pdf-dialog"
-    aria-labelledby="pdf-dialog-title"
-    data-pdf-url="{% if selected_manual %}{{ url_for('open_manual', manual_id=selected_manual.id) }}{% endif %}"
-    data-pdf-title="{% if selected_manual %}{{ selected_manual.title }}{% endif %}"
-  >
+  <dialog id="pdf-dialog" class="pdf-dialog" aria-labelledby="pdf-dialog-title">
     <div class="pdf-dialog-header">
       <h2 id="pdf-dialog-title">Visualizador de manual</h2>
       <button id="close-pdf" class="close-pdf" type="button" aria-label="Fechar PDF">
@@ -175,6 +132,6 @@
     </div>
     <iframe id="pdf-frame" class="pdf-frame" title="Visualizador de manual PDF"></iframe>
   </dialog>
-  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  <script src="./static/app.js" defer></script>
 </body>
 </html>

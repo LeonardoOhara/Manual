@@ -1,10 +1,20 @@
-# Busca de manuais PDF
+# Busca de manuais
 
-Aplicativo Flask responsivo para localizar manuais PDF por texto ou voz. A busca digitada e o filtro por marca atualizam a lista instantaneamente, sem recarregar a página. A busca por voz em português abre o PDF encontrado em um visualizador na mesma página, com botão para fechar; se houver vários resultados, eles são apresentados para escolha. Os links dos resultados usam o mesmo visualizador.
+Site estático responsivo para localizar manuais por texto, filtro ou voz. A busca por voz entende nomes de números em português, oferece os resultados mais prováveis e abre automaticamente uma correspondência única. Os PDFs permanecem na pasta pública do Google Drive e são visualizados na própria página.
 
-O botão de tema no topo alterna entre os modos claro e escuro, salva a preferência e, na primeira visita, acompanha o tema do sistema.
+## Publicar no GitHub Pages
 
-## Executar no Windows
+O site não precisa de Flask para ser publicado. O catálogo está em `data/manuals.json`; os arquivos PDF não são enviados ao GitHub.
+
+1. No GitHub, abra **Settings → Pages** e selecione **GitHub Actions** como origem da publicação.
+2. Envie as alterações para a branch `main`. O workflow `.github/workflows/pages.yml` publicará o site automaticamente.
+3. Aguarde a conclusão do workflow e abra o endereço mostrado em **Settings → Pages**.
+
+Os manuais no Drive precisam continuar compartilhados publicamente para que os visitantes possam visualizá-los. A busca por voz depende de um navegador compatível com Web Speech API e de permissão para usar o microfone; no GitHub Pages, a conexão HTTPS atende ao requisito de segurança do navegador.
+
+## Executar localmente
+
+No Windows, com Python 3.11:
 
 ```powershell
 py -3.11 -m venv .venv
@@ -13,15 +23,8 @@ pip install -r requirements.txt
 py app.py
 ```
 
-Abra `http://127.0.0.1:5000`. Toque no microfone e diga o modelo, por exemplo, “V trinta Elite”. A pesquisa considera outras transcrições possíveis e reconhece números falados por extenso. Ela requer um navegador compatível com Web Speech API e acesso ao microfone; fora de `localhost`, normalmente é necessário usar HTTPS. Também é possível pesquisar digitando.
+Abra `http://127.0.0.1:5000`. O Flask serve a mesma interface estática e o catálogo JSON usados no GitHub Pages.
 
-Por padrão, os PDFs são lidos das pastas de manuais em `Downloads`. Os arquivos permanecem nas pastas originais e são abertos pelo aplicativo sem serem copiados.
+## Atualizar o catálogo
 
-Para usar outras pastas, configure as variáveis de ambiente antes de iniciar:
-
-```powershell
-$env:MANUAL_DIRS = 'C:\Manuais\Marca A;C:\Manuais\Marca B'
-py app.py
-```
-
-`MANUAL_DIRS` recebe uma lista de pastas separadas por ponto e vírgula no Windows. Cada pasta vira uma opção de marca nos filtros.
+Ao adicionar, remover ou renomear manuais, atualize `data/manuals.json` com o ID público do arquivo no Drive, seu título e a marca. Cada ID deve apontar para um PDF que os visitantes tenham permissão para visualizar.
