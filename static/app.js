@@ -15,7 +15,6 @@ const emptyState = document.querySelector("#empty-state");
 const resultsCount = document.querySelector("#results-count");
 const resultsDescription = document.querySelector("#results-description");
 const clearSearch = document.querySelector("#clear-search");
-const libraryCount = document.querySelector("#library-count");
 const themeToggle = document.querySelector("#theme-toggle");
 const numberWords = new Map(
   Object.entries({
@@ -424,7 +423,6 @@ async function loadManuals() {
     manuals = catalog;
     manualCards = new Map(manuals.map((manual) => [manual.id, createManualCard(manual)]));
     populateBrands();
-    libraryCount.textContent = `${manuals.length} manuais no catálogo`;
 
     const params = new URLSearchParams(window.location.search);
     searchInput.value = params.get("q") || "";
@@ -446,7 +444,6 @@ async function loadManuals() {
     if (selectedManual) openPdf(selectedManual, false);
   } catch (error) {
     console.error("Could not load the manual catalog.", error);
-    libraryCount.textContent = "Biblioteca indisponível";
     resultsCount.textContent = "Erro";
     resultsDescription.textContent = "Não foi possível carregar a biblioteca.";
     emptyState.querySelector("h3").textContent = "Biblioteca indisponível";
