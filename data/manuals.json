@@ -20,6 +20,11 @@
     "brand": "MANUAIS MOVI"
   },
   {
+    "id": "1Ldkl0LWuF5ieuwhumBVHsWRJJqp4kgvo",
+    "title": "CT20-manual",
+    "brand": "Manual Coswheel"
+  },
+  {
     "id": "17rplyi5k41l9VGmjjKaiuVO-9YgiEKkW",
     "title": "D50 CROSS - MANUAL DE INSTRUÇÕES - PT_BR",
     "brand": "MANUAIS INOW"
@@ -35,9 +40,29 @@
     "brand": "Manuais Bosuer"
   },
   {
+    "id": "1IDWTduy9tzIE2d146lKTdgvD05Oy5U60",
+    "title": "Falcon_Pro_User_Manual",
+    "brand": "Manual Falcon"
+  },
+  {
     "id": "1tU0M2r7lIoOy0R-9BN2l0mcRBvkyE-At",
     "title": "G9 PRO - MANUAL DE INSTRUÇÕES - PT_BR",
     "brand": "MANUAIS INOW"
+  },
+  {
+    "id": "1IZvVC8uc3a5ckWA5n_zVAuVOaXK8DBsv",
+    "title": "GT20-manual",
+    "brand": "Manual Coswheel"
+  },
+  {
+    "id": "165v4KnV2Fc8b6Y113c5YivQfV4fjYcDT",
+    "title": "GT20-PRO-manual",
+    "brand": "Manual Coswheel"
+  },
+  {
+    "id": "1TNDE_B0t9lEolXdfR4edboAf2F1bVICt",
+    "title": "GT_User_Manual",
+    "brand": "Manual Falcon"
   },
   {
     "id": "1qLDXIKltPynbmnDLGahTlF5ioS-O-5sQ",
@@ -63,6 +88,11 @@
     "id": "1AvNTvAqVq3MS6l71inZcGbw6NMJhuX7k",
     "title": "M13 - MANUAL DE INSTRUÇÕES - PT_BR",
     "brand": "MANUAIS INOW"
+  },
+  {
+    "id": "1l6tvWp0ghyCBErvNN-GNDIbGeVaxTb18",
+    "title": "M20-manual",
+    "brand": "Manual Coswheel"
   },
   {
     "id": "1C8RLwxmcr_0GkSzpPZMVcjm2ZZrqftVn",
@@ -183,6 +213,11 @@
     "id": "1JfSDFSELbRbBukFvuiSDS3RX7bzNdNwH",
     "title": "SCOOTER STREET - MANUAL DE INSTRUÇÕES - PT BR",
     "brand": "Manuais Scooter"
+  },
+  {
+    "id": "10oz0Xq52i0oPQY9siOKfdfwywS1QA9Cd",
+    "title": "T16-manual",
+    "brand": "Manual Coswheel"
   },
   {
     "id": "1VkT7QVOarpcCWYpFmiVgwJZAZyvC79Cg",
@@ -373,5 +408,10 @@
     "id": "1wyDAYQeIvI0EFfWwD8C5V4PW60um_Ahr",
     "title": "X50 Action PRO - MANUAL DE INSTRUÇÕES - PT_BR",
     "brand": "MANUAIS INOW"
+  },
+  {
+    "id": "1jSaKZSnUks_Z-1W0nDGcHDU22zi2n0GT",
+    "title": "Y16-manual",
+    "brand": "Manual Coswheel"
   }
 ]
